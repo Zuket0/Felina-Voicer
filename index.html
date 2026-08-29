@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doblaje - Estudio</title>
+  <link rel="stylesheet" href="static/css/styles.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="app-screen" id="appScreen">
+
+    <!-- =========================================
+         VISTA 1: MENÚ DE SELECCIÓN DE ESCENAS
+    ========================================= -->
+    <div class="menu-view" id="menuView">
+      <div class="menu-header-bar">
+        <div class="breadcrumbs">
+          <i data-lucide="clapperboard"></i> Catálogo Principal &gt; <span class="current">Voice Packs Detectados</span>
+        </div>
+      </div>
+
+      <div class="menu-main-content">
+        <div class="scenes-sidebar">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="sceneSearchInput" placeholder="Buscar pack de doblaje...">
+          </div>
+
+          <ul class="scenes-list" id="scenesListContainer">
+            <!-- Cargado automáticamente -->
+          </ul>
+        </div>
+
+        <div class="scene-details-card">
+          <div class="details-header">
+            <img src="" alt="Portada" class="details-thumb" id="detailThumb" referrerpolicy="no-referrer">
+            <div class="details-title-box">
+              <h1 id="detailTitle">Cargando Voice Packs...</h1>
+              <p id="detailCategory">Voice Pack de la Comunidad</p>
+            </div>
+          </div>
+
+          <div class="details-body">
+            <div class="details-col-left">
+              <button class="btn-start-dub" id="btnStartSelectedDub">
+                <i data-lucide="mic"></i> <span id="lblStartBtn">¡Comenzar!</span>
+              </button>
+
+              <div class="characters-section">
+                <h3>Personajes en Escena</h3>
+                <ul class="characters-list" id="detailCharacters">
+                  <!-- Renderizado de personajes -->
+                </ul>
+              </div>
+            </div>
+
+            <div class="details-col-right">
+              <div class="info-stats-section">
+                <h3>Información de la Escena</h3>
+              </div>
+              <div class="stat-item">
+                <span class="label">Total de Frases a Doblar</span>
+                <span class="value" id="detailPhrasesCount">0 Frases</span>
+              </div>
+              <div class="stat-item">
+                <span class="label">Descripción / Subtítulo</span>
+                <span class="value" id="detailSubtitle" style="font-weight: normal; font-size: 0.95rem; color: #c9ccd4;">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <button class="pill-btn" id="btnMenuExit">
+          <i data-lucide="corner-down-left"></i> Salir
+        </button>
+        <button class="pill-btn" id="btnMenuOptions">
+          <i data-lucide="settings"></i> Opciones
+        </button>
+      </div>
+    </div>
+
+    <!-- =========================================
+         VISTA 2: ESTUDIO DE DOBLAJE
+    ========================================= -->
+    <div class="studio-view" id="studioView" style="display: none;">
+      <div class="top-section">
+        <div class="video-bezel">
+          <div class="video-inner">
+            <img id="dubFrameImg" class="media-display" src="" alt="Frame Escena">
+            <video id="finalDubVideo" class="media-display" style="display: none;" playsinline preload="auto"></video>
+            <audio id="phraseAudio" preload="auto"></audio>
+          </div>
+        </div>
+
+        <div class="side-menu">
+          <div class="clip-counter" id="clipText">Frase 1 de ?</div>
+          
+          <button class="menu-btn" id="btnPlayControl">
+            <i data-lucide="volume-2"></i> <span id="lblPlay">Reproducir</span>
+          </button>
+          
+          <button class="menu-btn" id="btnRecord" disabled>
+            <i data-lucide="circle-dot"></i> <span id="lblRecord">Grabar</span>
+          </button>
+          
+          <button class="menu-btn" id="btnNext" disabled>
+            Siguiente <i data-lucide="play" style="width: 16px; height: 16px; fill: currentColor;"></i>
+          </button>
+          
+          <button class="menu-btn" id="btnWatch" disabled>
+            <i data-lucide="eye"></i> Ver Escena
+          </button>
+          
+          <button class="menu-btn" id="btnSaveDub" disabled>
+            <i data-lucide="save"></i> Guardar Doblaje
+          </button>
+          
+          <button class="menu-btn btn-reset" id="btnResetMic" disabled>
+            <i data-lucide="rotate-ccw"></i> Reiniciar Mic
+          </button>
+        </div>
+      </div>
+
+      <div class="subtitle-section" id="subtitleSection">
+        <div class="phrase-text" id="phraseDisplay">Cargando frase...</div>
+      </div>
+
+      <div class="wave-section" id="waveSection">
+        <div class="wave-frame">
+          <canvas id="waveCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <button class="pill-btn" id="btnBackToMenu">
+          <i data-lucide="arrow-left"></i> Volver al Menú
+        </button>
+        <button class="pill-btn" id="btnStudioOptions">
+          <i data-lucide="settings"></i> Opciones
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONTENEDOR FIFO DE NOTIFICACIONES -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- MODAL DE OPCIONES -->
+  <div class="modal-backdrop" id="optionsModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2><i data-lucide="sliders"></i> Ajustes de Audio</h2>
+        <button class="btn-close-modal" id="btnCloseModal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="config-group">
+          <label for="micSelect">Entrada de Micrófono:</label>
+          <select id="micSelect" class="select-input">
+            <option value="">Cargando micrófonos disponibles...</option>
+          </select>
+        </div>
+
+        <div class="mic-level-wrapper">
+          <label>Nivel de entrada en tiempo real:</label>
+          <div class="mic-level-bar">
+            <div class="mic-level-fill" id="micLevelFill"></div>
+          </div>
+        </div>
+
+        <button class="btn-test-mic" id="btnTestMic">
+          <i data-lucide="headphones"></i> <span id="lblTestMic">Probar Micrófono (Monitoreo)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&q=80";
+
+    let loadedPacks = [];
+    let selectedPack = null;
+    let currentPhraseIdx = 0;
+    const recordedAudioBlobs = {};
+    const renderedToasts = {};
+
+    const menuView = document.getElementById('menuView');
+    const studioView = document.getElementById('studioView');
+    const appScreen = document.getElementById('appScreen');
+    const toastContainer = document.getElementById('toastContainer');
+
+    const scenesListContainer = document.getElementById('scenesListContainer');
+    const sceneSearchInput = document.getElementById('sceneSearchInput');
+    const detailThumb = document.getElementById('detailThumb');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailCategory = document.getElementById('detailCategory');
+    const detailPhrasesCount = document.getElementById('detailPhrasesCount');
+    const detailSubtitle = document.getElementById('detailSubtitle');
+    const detailCharacters = document.getElementById('detailCharacters');
+    const btnStartSelectedDub = document.getElementById('btnStartSelectedDub');
+    const lblStartBtn = document.getElementById('lblStartBtn');
+    const btnBackToMenu = document.getElementById('btnBackToMenu');
+
+    const dubFrameImg = document.getElementById('dubFrameImg');
+    const finalDubVideo = document.getElementById('finalDubVideo');
+    const phraseAudio = document.getElementById('phraseAudio');
+
+    const clipText = document.getElementById('clipText');
+    const phraseDisplay = document.getElementById('phraseDisplay');
+    const btnPlayControl = document.getElementById('btnPlayControl');
+    const btnRecord = document.getElementById('btnRecord');
+    const btnNext = document.getElementById('btnNext');
+    const btnWatch = document.getElementById('btnWatch');
+    const btnResetMic = document.getElementById('btnResetMic');
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const btnMenuOptions = document.getElementById('btnMenuOptions');
+    const btnStudioOptions = document.getElementById('btnStudioOptions');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const optionsModal = document.getElementById('optionsModal');
+    const micSelect = document.getElementById('micSelect');
+    const btnTestMic = document.getElementById('btnTestMic');
+    const lblTestMic = document.getElementById('lblTestMic');
+    const micLevelFill = document.getElementById('micLevelFill');
+
+    let audioCtx = null;
+    let phraseAnalyser = null;
+    let phraseSourceNode = null;
+    let phraseDataArray = null;
+    let isPhraseAudioInit = false;
+
+    let selectedDeviceId = null;
+    let micStream = null;
+    let micAnalyser = null;
+    let micSourceNode = null;
+    let micDataArray = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isMicInit = false;
+
+    let isTestingMic = false;
+    let testAudioCtx = null;
+    let testStream = null;
+    let testSourceNode = null;
+    let testAnalyser = null;
+    let testAnimFrame = null;
+
+    let bgAudioInstance = null;
+    let recordingTimer = null;
+    let recordStartTime = 0;
+    let recordDurationMs = 0;
+
+    const TOTAL_POINTS = 240;
+    let originalWave = new Array(TOTAL_POINTS).fill(0);
+    let userWave = new Array(TOTAL_POINTS).fill(0);
+
+    let hasHeardCurrentPhrase = false;
+    let isPlayingAudio = false;
+    let isRecording = false;
+    let isWatchingFullScene = false;
+
+    // Reset total del motor de audio al salir o cambiar de pantalla
+    function resetAudioEngineState() {
+      isPlayingAudio = false;
+      isRecording = false;
+      isWatchingFullScene = false;
+
+      if (phraseAudio) {
+        phraseAudio.pause();
+        phraseAudio.onended = null;
+        phraseAudio.currentTime = 0;
+      }
+
+      if (bgAudioInstance) {
+        bgAudioInstance.pause();
+        bgAudioInstance.onended = null;
+        bgAudioInstance = null;
+      }
+
+      if (recordingTimer) {
+        clearTimeout(recordingTimer);
+        recordingTimer = null;
+      }
+
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+
+      btnRecord.classList.remove('recording-active');
+      btnRecord.innerHTML = `<i data-lucide="circle-dot"></i> <span>Grabar</span>`;
+    }
+
+    async function fetchVoicePacks() {
+      try {
+        const res = await fetch('/api/packs');
+        loadedPacks = await res.json();
+
+        if (loadedPacks.length > 0) {
+          if (!selectedPack) selectedPack = loadedPacks[0];
+          else {
+            const currentSelected = loadedPacks.find(p => p.id === selectedPack.id);
+            if (currentSelected) selectedPack = currentSelected;
+          }
+          renderScenesList(sceneSearchInput.value);
+          updateDetailsCard();
+        } else {
+          detailTitle.textContent = "No se encontraron mods en static/res/packs_voice";
+        }
+      } catch (err) {}
+    }
+
+    async function pollQueueStatus() {
+      try {
+        const res = await fetch('/api/queue-status');
+        const queueMap = await res.json();
+
+        for (const folder in queueMap) {
+          const item = queueMap[folder];
+
+          if (item.status === 'ready') {
+            if (renderedToasts[folder]) {
+              const card = renderedToasts[folder];
+              card.querySelector('.toast-status-text').textContent = '¡Completado!';
+              card.querySelector('.toast-progress-fill').style.width = '100%';
+              setTimeout(() => {
+                card.classList.add('removing');
+                setTimeout(() => {
+                  card.remove();
+                  delete renderedToasts[folder];
+                }, 350);
+              }, 1200);
+            }
+            continue;
+          }
+
+          if (!renderedToasts[folder]) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-card';
+            toast.id = `toast_${folder}`;
+            toast.innerHTML = `
+              <img src="${item.icon || DEFAULT_THUMBNAIL}" alt="" class="toast-thumb" referrerpolicy="no-referrer">
+              <div class="toast-info">
+                <div class="toast-title">${item.title}</div>
+                <div class="toast-status-row">
+                  <span class="toast-status-text">${item.status === 'converting' ? `Preparando: ${item.percent}%` : 'En cola...'}</span>
+                </div>
+                <div class="toast-progress-track">
+                  <div class="toast-progress-fill" style="width: ${item.percent}%"></div>
+                </div>
+              </div>
+            `;
+            toastContainer.appendChild(toast);
+            renderedToasts[folder] = toast;
+          } else {
+            const card = renderedToasts[folder];
+            const text = item.status === 'converting' ? `Preparando: ${item.percent}%` : 'En cola...';
+            card.querySelector('.toast-status-text').textContent = text;
+            card.querySelector('.toast-progress-fill').style.width = `${item.percent}%`;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function renderScenesList(filterText = "") {
+      scenesListContainer.innerHTML = '';
+      const filtered = loadedPacks.filter(p => p.title.toLowerCase().includes(filterText.toLowerCase()));
+
+      filtered.forEach(pack => {
+        const li = document.createElement('li');
+        li.className = `scene-item ${pack.id === selectedPack.id ? 'active' : ''}`;
+        li.innerHTML = `
+          <i data-lucide="film" style="width: 18px; height: 18px;"></i>
+          <span class="item-title">${pack.title}</span>
+        `;
+        li.addEventListener('click', () => {
+          selectedPack = pack;
+          renderScenesList(sceneSearchInput.value);
+          updateDetailsCard();
+        });
+        scenesListContainer.appendChild(li);
+      });
+      lucide.createIcons();
+    }
+
+    function updateDetailsCard() {
+      if (!selectedPack) return;
+      detailThumb.src = selectedPack.thumbnail || DEFAULT_THUMBNAIL;
+      detailTitle.textContent = selectedPack.title;
+      detailSubtitle.textContent = selectedPack.subtitle || "Sin descripción disponible.";
+      detailPhrasesCount.textContent = `${selectedPack.phrases.length} Frases`;
+
+      detailCharacters.innerHTML = '';
+      if (!selectedPack.characters || selectedPack.characters.length === 0) {
+        detailCharacters.innerHTML = '<li><i data-lucide="check"></i> <span>Personajes varios</span></li>';
+      } else {
+        selectedPack.characters.forEach(char => {
+          const li = document.createElement('li');
+          li.innerHTML = `<i data-lucide="check"></i> <span>${char}</span>`;
+          detailCharacters.appendChild(li);
+        });
+      }
+
+      if (!selectedPack.isReady) {
+        btnStartSelectedDub.disabled = true;
+        lblStartBtn.textContent = "Preparando Video...";
+      } else if (selectedPack.phrases.length === 0) {
+        btnStartSelectedDub.disabled = true;
+        lblStartBtn.textContent = "Sin Frases";
+      } else {
+        btnStartSelectedDub.disabled = false;
+        lblStartBtn.textContent = "¡Comenzar!";
+      }
+
+      lucide.createIcons();
+    }
+
+    sceneSearchInput.addEventListener('input', (e) => {
+      renderScenesList(e.target.value);
+    });
+
+    btnStartSelectedDub.addEventListener('click', () => {
+      if (!selectedPack || !selectedPack.isReady || selectedPack.phrases.length === 0) return;
+
+      resetAudioEngineState();
+
+      for (const key in recordedAudioBlobs) delete recordedAudioBlobs[key];
+      btnWatch.disabled = true;
+
+      finalDubVideo.src = selectedPack.videoSrc;
+      finalDubVideo.load();
+
+      finalDubVideo.style.display = 'none';
+      dubFrameImg.style.display = 'block';
+
+      menuView.style.display = 'none';
+      studioView.style.display = 'flex';
+      setupCanvasSize();
+      loadPhrase(0);
+    });
+
+    btnBackToMenu.addEventListener('click', () => {
+      resetAudioEngineState();
+      finalDubVideo.pause();
+      appScreen.classList.remove('cinematic-mode');
+      studioView.style.display = 'none';
+      menuView.style.display = 'flex';
+      fetchVoicePacks();
+    });
+
+    function initPhraseAudio() {
+      if (isPhraseAudioInit) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = audioCtx || new AudioContext();
+      phraseAnalyser = audioCtx.createAnalyser();
+      phraseAnalyser.fftSize = 256;
+      phraseAnalyser.smoothingTimeConstant = 0.65;
+
+      phraseSourceNode = audioCtx.createMediaElementSource(phraseAudio);
+      phraseSourceNode.connect(phraseAnalyser);
+      phraseAnalyser.connect(audioCtx.destination);
+
+      phraseDataArray = new Uint8Array(phraseAnalyser.frequencyBinCount);
+      isPhraseAudioInit = true;
+    }
+
+    async function initMicAudio() {
+      if (isMicInit) return true;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = audioCtx || new AudioContext();
+
+        const constraints = {
+          audio: {
+            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        };
+
+        micStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        micAnalyser = audioCtx.createAnalyser();
+        micAnalyser.fftSize = 256;
+        micAnalyser.smoothingTimeConstant = 0.6;
+
+        micSourceNode = audioCtx.createMediaStreamSource(micStream);
+        micSourceNode.connect(micAnalyser);
+
+        micDataArray = new Uint8Array(micAnalyser.frequencyBinCount);
+        isMicInit = true;
+        return true;
+      } catch (err) {
+        alert("Se requiere acceso al micrófono para doblar.");
+        return false;
+      }
+    }
+
+    function setupCanvasSize() {
+      if (!canvas.parentElement) return;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight || 120;
+    }
+
+    function resetWaveBuffers() {
+      originalWave = new Array(TOTAL_POINTS).fill(0);
+      userWave = new Array(TOTAL_POINTS).fill(0);
+    }
+
+    window.addEventListener('resize', setupCanvasSize);
+
+    function loadPhrase(index) {
+      resetAudioEngineState();
+
+      currentPhraseIdx = index;
+      const phrase = selectedPack.phrases[index];
+      
+      clipText.textContent = `Frase ${index + 1} de ${selectedPack.phrases.length}`;
+      phraseDisplay.textContent = `“${phrase.caption}”`;
+      
+      finalDubVideo.style.display = 'none';
+      dubFrameImg.style.display = 'block';
+      dubFrameImg.src = phrase.imageSrc;
+
+      phraseAudio.src = phrase.audioSrc;
+      phraseAudio.load();
+
+      hasHeardCurrentPhrase = false;
+      resetWaveBuffers();
+
+      btnPlayControl.innerHTML = `<i data-lucide="volume-2"></i> <span>Reproducir</span>`;
+      btnPlayControl.disabled = false;
+      btnRecord.disabled = true;
+      btnNext.disabled = true;
+      lucide.createIcons();
+    }
+
+    async function playPhraseReference() {
+      if (isPlayingAudio || isRecording || isWatchingFullScene) return;
+
+      initPhraseAudio();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      isPlayingAudio = true;
+      btnPlayControl.disabled = true;
+      btnRecord.disabled = true;
+      btnNext.disabled = true;
+
+      if (!hasHeardCurrentPhrase) {
+        originalWave.fill(0);
+      }
+
+      phraseAudio.currentTime = 0;
+      
+      phraseAudio.onended = () => {
+        isPlayingAudio = false;
+        hasHeardCurrentPhrase = true;
+
+        btnPlayControl.innerHTML = `<i data-lucide="rotate-ccw"></i> <span>Escuchar de nuevo</span>`;
+        btnPlayControl.disabled = false;
+        btnRecord.disabled = false;
+        btnNext.disabled = !recordedAudioBlobs[currentPhraseIdx];
+        lucide.createIcons();
+      };
+
+      try {
+        await phraseAudio.play();
+      } catch (err) {
+        isPlayingAudio = false;
+        btnPlayControl.disabled = false;
+      }
+    }
+
+    async function handleRecordToggle() {
+      if (isPlayingAudio || isWatchingFullScene) return;
+
+      initPhraseAudio();
+      const micReady = await initMicAudio();
+      if (!micReady) return;
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      const durationSec = phraseAudio.duration || 3.0;
+      recordDurationMs = durationSec * 1000;
+
+      if (!isRecording) {
+        isRecording = true;
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(micStream);
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          if (isRecordingFinishedSuccess) {
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            recordedAudioBlobs[currentPhraseIdx] = blob;
+          }
+        };
+
+        let isRecordingFinishedSuccess = false;
+
+        btnPlayControl.disabled = true;
+        btnNext.disabled = true;
+        btnRecord.classList.add('recording-active');
+        btnRecord.innerHTML = `<i data-lucide="square"></i> <span>Parar grabación</span>`;
+        lucide.createIcons();
+
+        userWave.fill(0);
+        recordStartTime = performance.now();
+        mediaRecorder.start();
+
+        recordingTimer = setTimeout(() => {
+          if (!isRecording) return;
+          isRecordingFinishedSuccess = true;
+          if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+
+          isRecording = false;
+          btnRecord.classList.remove('recording-active');
+          btnRecord.innerHTML = `<i data-lucide="circle-dot"></i> <span>Grabar</span>`;
+          btnPlayControl.disabled = false;
+          btnNext.disabled = false;
+          lucide.createIcons();
+        }, recordDurationMs);
+
+      } else {
+        isRecording = false;
+        clearTimeout(recordingTimer);
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+
+        delete recordedAudioBlobs[currentPhraseIdx];
+        userWave.fill(0);
+
+        btnRecord.classList.remove('recording-active');
+        btnRecord.innerHTML = `<i data-lucide="circle-dot"></i> <span>Grabar</span>`;
+        btnPlayControl.disabled = false;
+        btnNext.disabled = true;
+        lucide.createIcons();
+      }
+    }
+
+    btnNext.addEventListener('click', () => {
+      if (currentPhraseIdx < selectedPack.phrases.length - 1) {
+        loadPhrase(currentPhraseIdx + 1);
+      } else {
+        clipText.textContent = "¡Todas las frases grabadas!";
+        phraseDisplay.textContent = "Presiona 'Ver Escena' para ver la escena final completa.";
+        btnPlayControl.disabled = true;
+        btnRecord.disabled = true;
+        btnNext.disabled = true;
+        btnWatch.disabled = false;
+      }
+    });
+
+    btnWatch.addEventListener('click', async () => {
+      isWatchingFullScene = true;
+      btnWatch.disabled = true;
+      appScreen.classList.add('cinematic-mode');
+
+      dubFrameImg.style.display = 'none';
+      finalDubVideo.style.display = 'block';
+
+      if (bgAudioInstance) bgAudioInstance.pause();
+      bgAudioInstance = new Audio(selectedPack.backingTrack);
+      bgAudioInstance.currentTime = 0;
+
+      finalDubVideo.muted = true;
+      finalDubVideo.currentTime = 0;
+
+      try {
+        await finalDubVideo.play();
+      } catch (err) {}
+
+      bgAudioInstance.play();
+
+      selectedPack.phrases.forEach((item, idx) => {
+        const blob = recordedAudioBlobs[idx];
+        if (!blob) return;
+
+        const audioUrl = URL.createObjectURL(blob);
+        const voiceAudio = new Audio(audioUrl);
+        let hasFired = false;
+
+        const syncCheck = () => {
+          if (!hasFired && bgAudioInstance && bgAudioInstance.currentTime >= item.timestamp) {
+            hasFired = true;
+            voiceAudio.play();
+          }
+          if (!isWatchingFullScene && bgAudioInstance) {
+            bgAudioInstance.removeEventListener('timeupdate', syncCheck);
+          }
+        };
+
+        if (bgAudioInstance) bgAudioInstance.addEventListener('timeupdate', syncCheck);
+      });
+
+      const endSceneFlow = () => {
+        finalDubVideo.pause();
+        if (bgAudioInstance) {
+          bgAudioInstance.pause();
+          bgAudioInstance = null;
+        }
+        isWatchingFullScene = false;
+        btnWatch.disabled = false;
+        appScreen.classList.remove('cinematic-mode');
+
+        finalDubVideo.style.display = 'none';
+        dubFrameImg.style.display = 'block';
+        if (selectedPack.phrases[selectedPack.phrases.length - 1]) {
+          dubFrameImg.src = selectedPack.phrases[selectedPack.phrases.length - 1].imageSrc;
+        }
+        setTimeout(setupCanvasSize, 300);
+      };
+
+      bgAudioInstance.onended = endSceneFlow;
+      finalDubVideo.onended = endSceneFlow;
+    });
+
+    btnPlayControl.addEventListener('click', playPhraseReference);
+    btnRecord.addEventListener('click', handleRecordToggle);
+
+    function drawSmoothWave(buffer, limitIdx, color, scaleFactor, centerY, w) {
+      if (limitIdx < 1) return;
+      const stepX = w / (TOTAL_POINTS - 1);
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+
+      for (let i = 0; i <= limitIdx; i++) {
+        const x = i * stepX;
+        const amp = (buffer[i] || 0) * scaleFactor;
+
+        if (i === 0) {
+          ctx.lineTo(x, centerY - amp);
+        } else {
+          const prevX = (i - 1) * stepX;
+          const prevAmp = (buffer[i - 1] || 0) * scaleFactor;
+          const midX = (prevX + x) / 2;
+          const midY = centerY - ((prevAmp + amp) / 2);
+          ctx.quadraticCurveTo(prevX, centerY - prevAmp, midX, midY);
+        }
+      }
+
+      const endX = limitIdx * stepX;
+      ctx.lineTo(endX, centerY);
+
+      for (let i = limitIdx; i >= 0; i--) {
+        const x = i * stepX;
+        const amp = (buffer[i] || 0) * scaleFactor;
+
+        if (i === limitIdx) {
+          ctx.lineTo(x, centerY + amp);
+        } else {
+          const nextX = (i + 1) * stepX;
+          const nextAmp = (buffer[i + 1] || 0) * scaleFactor;
+          const midX = (nextX + x) / 2;
+          const midY = centerY + ((nextAmp + amp) / 2);
+          ctx.quadraticCurveTo(nextX, centerY + nextAmp, midX, midY);
+        }
+      }
+
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function renderWaveform() {
+      requestAnimationFrame(renderWaveform);
+
+      if (isWatchingFullScene || studioView.style.display === 'none') return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const centerY = h / 2;
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, w, h);
+
+      let progress = 0;
+      if (isPlayingAudio && phraseAudio.duration) {
+        progress = Math.min(phraseAudio.currentTime / phraseAudio.duration, 1);
+      } else if (isRecording && recordDurationMs > 0) {
+        progress = Math.min((performance.now() - recordStartTime) / recordDurationMs, 1);
+      } else if (hasHeardCurrentPhrase) {
+        progress = 1;
+      }
+
+      const playheadX = (isPlayingAudio || isRecording) ? progress * w : 0;
+      const currentIdx = Math.floor(progress * (TOTAL_POINTS - 1));
+
+      if (isPhraseAudioInit && phraseAnalyser && isPlayingAudio && !hasHeardCurrentPhrase && !phraseAudio.paused) {
+        phraseAnalyser.getByteFrequencyData(phraseDataArray);
+        let sum = 0;
+        const len = Math.floor(phraseDataArray.length * 0.6);
+        for (let i = 0; i < len; i++) sum += phraseDataArray[i];
+        let normalized = sum / len / 255;
+        let amp = Math.pow(normalized, 1.2) * (h * 0.46);
+        if (amp < 4) amp = 0;
+
+        for (let i = 0; i <= currentIdx; i++) {
+          if (originalWave[i] === 0 || i === currentIdx) originalWave[i] = amp;
+        }
+      }
+
+      if (isMicInit && micAnalyser && isRecording) {
+        micAnalyser.getByteFrequencyData(micDataArray);
+        let sum = 0;
+        const len = Math.floor(micDataArray.length * 0.6);
+        for (let i = 0; i < len; i++) sum += micDataArray[i];
+        let normalized = sum / len / 255;
+        let amp = Math.pow(normalized, 1.2) * (h * 0.48);
+        if (amp < 4) amp = 0;
+
+        for (let i = 0; i <= currentIdx; i++) {
+          if (userWave[i] === 0 || i === currentIdx) userWave[i] = amp;
+        }
+      }
+
+      const origLimit = hasHeardCurrentPhrase ? TOTAL_POINTS - 1 : currentIdx;
+
+      if (originalWave.some(v => v > 0)) {
+        drawSmoothWave(originalWave, origLimit, "#7a0c8b", 1.0, centerY, w);
+        drawSmoothWave(originalWave, origLimit, "#e600c8", 0.62, centerY, w);
+
+        ctx.strokeStyle = "#b31b1b";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        const stepX = w / (TOTAL_POINTS - 1);
+        for (let i = 0; i <= origLimit; i++) {
+          const noise = (originalWave[i] > 6) ? (originalWave[i] * 0.22 + ((i % 3) * 1.5)) : 0;
+          const y = (h - 16) - noise;
+          if (i === 0) ctx.moveTo(i * stepX, y);
+          else ctx.lineTo(i * stepX, y);
+        }
+        ctx.stroke();
+      }
+
+      const userLimit = isRecording ? currentIdx : TOTAL_POINTS - 1;
+      if (userWave.some(v => v > 0)) {
+        ctx.globalCompositeOperation = "screen";
+
+        drawSmoothWave(userWave, userLimit, "rgba(0, 160, 210, 0.45)", 1.08, centerY, w);
+        drawSmoothWave(userWave, userLimit, "rgba(0, 230, 255, 0.55)", 0.72, centerY, w);
+        drawSmoothWave(userWave, userLimit, "rgba(255, 255, 255, 0.65)", 0.38, centerY, w);
+
+        ctx.globalCompositeOperation = "source-over";
+
+        ctx.strokeStyle = "rgba(45, 212, 191, 0.9)";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        const stepX = w / (TOTAL_POINTS - 1);
+        for (let i = 0; i <= userLimit; i++) {
+          const noise = (userWave[i] > 6) ? (userWave[i] * 0.25 + ((i % 2) * 2)) : 0;
+          const y = (h - 22) - noise;
+          if (i === 0) ctx.moveTo(i * stepX, y);
+          else ctx.lineTo(i * stepX, y);
+        }
+        ctx.stroke();
+      }
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(w, centerY);
+      ctx.stroke();
+
+      if (isPlayingAudio || isRecording) {
+        ctx.strokeStyle = "#e63946";
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(playheadX, 0);
+        ctx.lineTo(playheadX, h);
+        ctx.stroke();
+      }
+    }
+
+    async function updateMicDevicesList() {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputs = devices.filter(device => device.kind === 'audioinput');
+
+        micSelect.innerHTML = '';
+        audioInputs.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Micrófono ${index + 1}`;
+          if (device.deviceId === selectedDeviceId) option.selected = true;
+          micSelect.appendChild(option);
+        });
+
+        if (audioInputs.length > 0 && !selectedDeviceId) {
+          selectedDeviceId = audioInputs[0].deviceId;
+        }
+      } catch (err) {}
+    }
+
+    const openOptionsModal = () => {
+      optionsModal.classList.add('active');
+      updateMicDevicesList();
+    };
+
+    btnMenuOptions.addEventListener('click', openOptionsModal);
+    btnStudioOptions.addEventListener('click', openOptionsModal);
+
+    btnCloseModal.addEventListener('click', () => {
+      stopMicTest();
+      optionsModal.classList.remove('active');
+    });
+
+    micSelect.addEventListener('change', (e) => {
+      selectedDeviceId = e.target.value;
+      if (isMicInit) {
+        if (micStream) micStream.getTracks().forEach(t => t.stop());
+        isMicInit = false;
+      }
+      if (isTestingMic) {
+        stopMicTest();
+        startMicTest();
+      }
+    });
+
+    async function startMicTest() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        testAudioCtx = new AudioContext();
+
+        testStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+
+        testSourceNode = testAudioCtx.createMediaStreamSource(testStream);
+        testAnalyser = testAudioCtx.createAnalyser();
+        testAnalyser.fftSize = 128;
+
+        testSourceNode.connect(testAnalyser);
+        testAnalyser.connect(testAudioCtx.destination);
+
+        isTestingMic = true;
+        btnTestMic.classList.add('testing-active');
+        lblTestMic.textContent = "Detener Prueba de Audio";
+
+        const data = new Uint8Array(testAnalyser.frequencyBinCount);
+        const updateVuMeter = () => {
+          if (!isTestingMic) return;
+          testAnalyser.getByteFrequencyData(data);
+          let sum = 0;
+          for (let i = 0; i < data.length; i++) sum += data[i];
+          const average = sum / data.length;
+          const percentage = Math.min(100, (average / 128) * 100);
+          micLevelFill.style.width = percentage + "%";
+          testAnimFrame = requestAnimationFrame(updateVuMeter);
+        };
+        updateVuMeter();
+      } catch (err) {
+        alert("No se pudo iniciar la prueba de audio.");
+      }
+    }
+
+    function stopMicTest() {
+      if (!isTestingMic) return;
+      isTestingMic = false;
+      btnTestMic.classList.remove('testing-active');
+      lblTestMic.textContent = "Probar Micrófono (Monitoreo)";
+      micLevelFill.style.width = "0%";
+
+      if (testAnimFrame) cancelAnimationFrame(testAnimFrame);
+      if (testStream) testStream.getTracks().forEach(t => t.stop());
+      if (testAudioCtx) testAudioCtx.close();
+    }
+
+    btnTestMic.addEventListener('click', () => {
+      if (!isTestingMic) startMicTest();
+      else stopMicTest();
+    });
+
+    btnResetMic.addEventListener('click', async () => {
+      if (micStream) micStream.getTracks().forEach(t => t.stop());
+      isMicInit = false;
+      await initMicAudio();
+      alert("Micrófono reiniciado y reconectado.");
+    });
+
+    setInterval(pollQueueStatus, 350);
+    setInterval(() => {
+      if (menuView.style.display !== 'none') {
+        fetchVoicePacks();
+      }
+    }, 2500);
+
+    fetchVoicePacks();
+    renderWaveform();
+  </script>
+</body>
+</html>
