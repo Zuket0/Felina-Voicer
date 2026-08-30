@@ -1,65 +1,39 @@
 @echo off
-setlocal enabledelayedexpansion
-title ChoicerVoicer - Lanzador Automatico
+title ChoicerVoicer - Estudio de Doblaje
 color 0B
+
+:: 1. Ir a la unidad y carpeta donde esta el archivo .bat
+%~d0
+cd "%~dp0"
 
 echo =========================================================
 echo                  INICIANDO CHOICERVOICER                
 echo =========================================================
 echo.
-
-node -v >nul 2>&1
-if %errorlevel% equ 0 (
-    set "NODE_EXEC=node"
-    set "NPM_EXEC=npm"
-    goto :VERIFY_DEPENDENCIES
-)
-
-if exist ".runtime\node.exe" (
-    set "NODE_EXEC=.runtime\node.exe"
-    set "NPM_EXEC=.runtime\npm.cmd"
-    goto :VERIFY_DEPENDENCIES
-)
-
-echo [INFO] No se encontro Node.js en tu sistema.
-echo [INFO] Descargando entorno portable oficial de Node.js (espera unos segundos)...
+echo [INFO] Carpeta: %CD%
 echo.
 
-if not exist ".runtime\" mkdir .runtime
-
-curl -L -o .runtime\node.zip https://nodejs.org/dist/v20.17.0/node-v20.17.0-win-x64.zip
-
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] No se pudo descargar Node.js automaticamente. 
-    echo Revisa tu conexion a Internet.
-    pause
-    exit /b
-)
-
-echo.
-echo [INFO] Descomprimiendo entorno...
-tar -xf .runtime\node.zip -C .runtime --strip-components=1
-del .runtime\node.zip
-
-set "NODE_EXEC=.runtime\node.exe"
-set "NPM_EXEC=.runtime\npm.cmd"
-echo [INFO] Entorno portable configurado correctamente.
-echo.
-
-:VERIFY_DEPENDENCIES
+:: 2. Instalar dependencias si no existe node_modules
 if not exist "node_modules\" (
-    echo [INFO] Instalando librerias del proyecto (fluent-ffmpeg, express, open, etc.)...
+    echo [INFO] Instalando dependencias de Node.js por primera vez...
     echo.
-    call "%NPM_EXEC%" install
+    call npm install
     echo.
-    echo [INFO] Librerias instaladas con exito.
+    echo [INFO] Instalacion terminada.
 )
 
+:: 3. Abrir la direccion en el navegador
+echo [INFO] Abriendo aplicacion en http://localhost:3000 ...
+start "" "http://localhost:3000"
+
+:: 4. Iniciar el servidor (mantiene el CMD activo)
 echo [INFO] Iniciando servidor ChoicerVoicer...
-echo [INFO] Tu navegador se abrira automaticamente en breve.
+echo [INFO] No cierres esta ventana mientras uses el programa.
 echo.
 
-"%NODE_EXEC%" server.js
+node server.js
 
+:: Si por alguna razon el servidor se detiene, la consola no se cerrara
+echo.
+echo [INFO] El servidor se ha detenido.
 pause
