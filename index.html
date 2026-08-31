@@ -3,12 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doblaje - Estudio</title>
+  <title>Felina Voicer - Estudio de Doblaje</title>
   <link rel="stylesheet" href="static/css/styles.css">
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
+
+  <!-- =========================================
+       PANTALLA DE ENTRADA INTERACTIVA (INTRO)
+  ========================================= -->
+  <div class="intro-screen" id="introScreen">
+    <div class="intro-bg-scroller" id="introBg"></div>
+    <div class="intro-content">
+      <div class="intro-logo-box" id="introLogo">
+        <span class="logo-felina">Felina</span>
+        <span class="logo-voicer">Voicer</span>
+      </div>
+      <div class="intro-menu-options" id="introMenuBtns">
+        <button class="btn-intro-option" id="btnIntroPlay">JUGAR</button>
+        <button class="btn-intro-option" id="btnIntroMods">MODS</button>
+        <button class="btn-intro-option" id="btnIntroOptions">OPCIONES</button>
+      </div>
+    </div>
+  </div>
 
   <div class="app-screen" id="appScreen">
 
@@ -186,6 +204,34 @@
   <script>
     lucide.createIcons();
 
+    // =========================================
+    // CONTROL DE INTRODUCCIÓN Y ANIMACIONES
+    // =========================================
+    const introScreen = document.getElementById('introScreen');
+    const introBg = document.getElementById('introBg');
+    const introLogo = document.getElementById('introLogo');
+    const introMenuBtns = document.getElementById('introMenuBtns');
+    const btnIntroPlay = document.getElementById('btnIntroPlay');
+    const btnIntroMods = document.getElementById('btnIntroMods');
+    const btnIntroOptions = document.getElementById('btnIntroOptions');
+
+    // Secuencia de entrada
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        introBg.classList.add('visible');
+        introLogo.classList.add('settled');
+        introMenuBtns.classList.add('visible');
+      }, 1000);
+    });
+
+    btnIntroPlay.addEventListener('click', () => {
+      introScreen.classList.add('hidden');
+    });
+
+    btnIntroMods.addEventListener('click', () => {
+      introScreen.classList.add('hidden');
+    });
+
     const DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&q=80";
 
     let loadedPacks = [];
@@ -210,6 +256,7 @@
     const btnStartSelectedDub = document.getElementById('btnStartSelectedDub');
     const lblStartBtn = document.getElementById('lblStartBtn');
     const btnBackToMenu = document.getElementById('btnBackToMenu');
+    const btnMenuExit = document.getElementById('btnMenuExit');
 
     const dubFrameImg = document.getElementById('dubFrameImg');
     const finalDubVideo = document.getElementById('finalDubVideo');
@@ -270,7 +317,11 @@
     let isRecording = false;
     let isWatchingFullScene = false;
 
-    // Reset total del motor de audio al salir o cambiar de pantalla
+    // Regresar a la pantalla de inicio desde el menú
+    btnMenuExit.addEventListener('click', () => {
+      introScreen.classList.remove('hidden');
+    });
+
     function resetAudioEngineState() {
       isPlayingAudio = false;
       isRecording = false;
@@ -915,6 +966,7 @@
     };
 
     btnMenuOptions.addEventListener('click', openOptionsModal);
+    btnIntroOptions.addEventListener('click', openOptionsModal);
     btnStudioOptions.addEventListener('click', openOptionsModal);
 
     btnCloseModal.addEventListener('click', () => {

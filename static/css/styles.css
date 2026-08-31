@@ -1,3 +1,150 @@
+/* Fuentes personalizadas */
+@font-face {
+  font-family: 'MoreSugar';
+  src: url('../fonts/MoreSugar.ttf') format('truetype'),
+       url('https://fonts.cdnfonts.com/s/72887/MoreSugar-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Marykate';
+  src: url('../fonts/Marykate.ttf') format('truetype'),
+       url('https://fonts.cdnfonts.com/s/18166/Marykate.woff') format('woff');
+}
+
+/* =========================================
+   PANTALLA DE INICIO (SPLASH / MAIN MENU)
+========================================= */
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #141518;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  overflow: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.intro-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Fondo en bucle continuo de izquierda a derecha */
+.intro-bg-scroller {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: url('../res/bg_pattern.png') repeat-x center center;
+  background-size: contain;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  animation: bgSlideLeft 40s linear infinite;
+  transition: opacity 1.2s ease;
+}
+
+.intro-bg-scroller.visible {
+  opacity: 0.28;
+}
+
+@keyframes bgSlideLeft {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.intro-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Título animado: Comienza grande en el centro y sube suavemente */
+.intro-logo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'MoreSugar', 'Arial Rounded MT Bold', sans-serif;
+  text-align: center;
+  transform: translateY(0) scale(1.65);
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.intro-logo-box.settled {
+  transform: translateY(-20px) scale(1);
+}
+
+.logo-felina {
+  font-size: 5.2rem;
+  color: #c084fc;
+  line-height: 0.95;
+  text-shadow: 4px 4px 0px #2e1065, -2px -2px 0px #2e1065, 2px -2px 0px #2e1065, -2px 2px 0px #2e1065, 0 8px 20px rgba(0, 0, 0, 0.8);
+}
+
+.logo-voicer {
+  font-size: 5.6rem;
+  color: #ffffff;
+  line-height: 0.95;
+  text-shadow: 4px 4px 0px #1e1e24, -2px -2px 0px #1e1e24, 2px -2px 0px #1e1e24, -2px 2px 0px #1e1e24, 0 8px 20px rgba(0, 0, 0, 0.8);
+}
+
+/* Botones con estilo píldora blanca gruesa */
+.intro-menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 270px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease 0.4s, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+}
+
+.intro-menu-options.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.btn-intro-option {
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Marykate', 'Arial Black', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 1.5px;
+  border: 4px solid #000000;
+  border-radius: 40px;
+  padding: 10px 0;
+  width: 100%;
+  cursor: pointer;
+  box-shadow: 0 6px 0px #000000, 0 10px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+  text-align: center;
+}
+
+.btn-intro-option:hover {
+  background: #f3e8ff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0px #000000, 0 14px 24px rgba(0, 0, 0, 0.6);
+}
+
+.btn-intro-option:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0px #000000;
+}
+
+
 * {
   box-sizing: border-box;
   margin: 0;
